@@ -47,6 +47,10 @@ reddit_sentiment = df_reddit.groupby('Date').agg({
 # SEGMENT: Adding Guardian Data
 df_guardian = get_guardian_data(years)
 df_guardian["Date"] = pd.to_datetime(df_guardian["Date"]).dt.date
+df_guardian['guardian_sentiment'] = df_guardian['GuardianTitle'].apply(lambda x: analyzer.polarity_scores(x)['compound'])
+guardian_sentiment = df_guardian.groupby('Date').agg({
+    'guardian_sentiment': 'mean',
+})
 
 print(df_reddit.info())
 print(df.info())
