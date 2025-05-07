@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta, timezone
 import praw
+import requests
 
 def dataExploration(df, y):
     print("--------------------------------------------------------------------------------")
@@ -131,3 +132,47 @@ def get_reddit_data(years):
                     })
 
     return pd.DataFrame(posts)
+
+def get_guardian_data(years):
+    # Define API parameters
+    api_key = "6463ff44-686e-4a55-a25d-2d7df802a577"
+    search_query = 'tesla OR elon musk '
+    sort = "newest"
+    page_size = 50
+    end = datetime.today()
+    start = end - timedelta(days=365 * years)
+    end = end.strftime("%Y%m%d")
+    start = start.strftime("%Y%m%d")
+    fields = "body"
+    tag = "technology/tesla"
+
+    # Initialize an empty list to store all articles
+    all_articles = []
+
+    # Loop through multiple pages
+    for page in range(1, 50):  # Adjust the range to include more pages (e.g., 1 to 10)
+        url = (f"https://content.guardianapis.com/search?page={page}&"
+               f"q={search_query}&"
+               f"page-size={page_size}&"
+               f"order-by={sort}&"
+               f"api-key={api_key}&"
+               f"query-fields={fields}&"
+               f"tag={tag}")
+
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            articles = data['response']['results']
+
+            # Append each article to the list
+            for article in articles:
+                all_articles.append({
+                    'Date': article['webPublicationDate'],
+                    'GuardianTitle': article['webTitle']
+                })
+        else:
+            print(f"Error on page {page}: {data['message']}")
+            break  # Stop the loop if there's an error
+
+    # Convert the list of articles into a DataFrame
+    return pd.DataFrame(all_articles)

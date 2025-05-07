@@ -7,7 +7,7 @@ import praw
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from functions import dataExploration, calc_indicators, get_reddit_data
+from functions import dataExploration, calc_indicators, get_reddit_data, get_guardian_data
 
 #SEGMENT: Basic Information
 index = "TSLA"
@@ -43,6 +43,10 @@ reddit_sentiment = df_reddit.groupby('Date').agg({
     'reddit_sentiment': 'mean',
     'reddit_score': 'sum'
 }).reset_index()
+
+# SEGMENT: Adding Guardian Data
+df_guardian = get_guardian_data(years)
+df_guardian["Date"] = pd.to_datetime(df_guardian["Date"]).dt.date
 
 print(df_reddit.info())
 print(df.info())
