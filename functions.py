@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta, timezone
+import praw
 
 def dataExploration(df, y):
     print("--------------------------------------------------------------------------------")
@@ -92,3 +93,41 @@ def calc_indicators(df, column):
     df['CVI'] = df['Volume'].cumsum()  # Tracks cumulative trading volume
 
     return df
+
+def get_reddit_data(years):
+    reddit = praw.Reddit(
+        client_id="T7oKFrZVFHPIJtr5M67JIg",  # Your client ID
+        client_secret="KmJuy0s55nO87JRajBxHC2SeBLVeyQ",  # Your client secret
+        user_agent="tesla-sentiment-script by u/Optimal-Bar-2756"  # Your user agent
+    )
+
+    subreddit_keywords = {
+        "tesla": ["crash", "fire", "stocks", "lithium shortage"],
+        "stocks": ["tesla", "elon musk", "lithium shortage"],
+        "stockmarket": ["tesla", "elon musk", "lithium shortage"],
+        "news": ["tesla", "elon musk", "lithium shortage"],
+        "worldnews": ["tesla", "elon musk", "lithium shortage"]
+    }
+
+    posts = []
+    end = datetime.today()
+    start = end - timedelta(days=years * 365)
+
+    for subreddit_name, keywords in subreddit_keywords.items():
+        subreddit = reddit.subreddit(subreddit_name)
+        for keyword in keywords:
+            for submission in subreddit.search(keyword, sort="new", time_filter="all", limit=1000):
+                # Only collect posts within the last 5 years
+                # post_date = fromtimestamp(submission.created_utc, tz=dt.timezone.utc).date()
+                post_date = datetime.fromtimestamp(submission.created_utc, tz=timezone.utc).date()
+                if post_date >= start.date():
+                    posts.append({
+                        "Date": post_date,
+                        "subreddit": subreddit_name,
+                        "keyword": keyword,
+                        "title": submission.title,
+                        "selftext": submission.selftext,
+                        "reddit_score": submission.score
+                    })
+
+    return pd.DataFrame(posts)

@@ -7,7 +7,7 @@ import praw
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from functions import dataExploration, calc_indicators
+from functions import dataExploration, calc_indicators, get_reddit_data
 
 #SEGMENT: Basic Information
 index = "TSLA"
@@ -33,5 +33,9 @@ df["Date"] = df["Date"].dt.date
 #SEGMENT: Adding Technical Indicators
 df = calc_indicators(df, "Close")
 
-print(df)
+#SEGMENT: Adding Reddit Data
+df_reddit = get_reddit_data(years)
+df_reddit['text'] = df_reddit['title'] + " " + df_reddit['selftext'].fillna("")
+
+print(df_reddit.info())
 print(df.info())
