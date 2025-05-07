@@ -12,7 +12,7 @@ from functions import dataExploration, calc_indicators, get_reddit_data, get_gua
 #SEGMENT: Basic Information
 index = "TSLA"
 exchange = "^IXIC"
-years = 1
+years = 5
 end = datetime.today()
 start = end - timedelta(days=365 * years)
 
@@ -61,5 +61,20 @@ nyt_sentiment = df_nyt.groupby('Date').agg({
     'nyt_sentiment': 'mean'
 }).reset_index()
 
-print(nyt_sentiment.info())
-print(df.info())
+# SEGMENT: Merging Data & Preprocessing
+data = df.merge(reddit_sentiment, on="Date", how="left")
+data = data.merge(guardian_sentiment, on="Date", how="left")
+data = data.merge(nyt_sentiment, on="Date", how="left")
+
+data["reddit_sentiment"] = data["reddit_sentiment"].fillna(0)
+data["reddit_score"] = data["reddit_score"].fillna(0)
+data["guardian_sentiment"] = data["guardian_sentiment"].fillna(0)
+data["nyt_sentiment"] = data["nyt_sentiment"].fillna(0)
+
+data = data.fillna(0)
+
+
+print(data)
+print(data.info())
+
+data.to_csv("final_data.csv")
