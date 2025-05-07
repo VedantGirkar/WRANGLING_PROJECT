@@ -37,5 +37,12 @@ df = calc_indicators(df, "Close")
 df_reddit = get_reddit_data(years)
 df_reddit['text'] = df_reddit['title'] + " " + df_reddit['selftext'].fillna("")
 
+analyzer = SentimentIntensityAnalyzer()
+df_reddit['reddit_sentiment'] = df_reddit['text'].apply(lambda x: analyzer.polarity_scores(x)['compound'])
+reddit_sentiment = df_reddit.groupby('Date').agg({
+    'reddit_sentiment': 'mean',
+    'reddit_score': 'sum'
+}).reset_index()
+
 print(df_reddit.info())
 print(df.info())
