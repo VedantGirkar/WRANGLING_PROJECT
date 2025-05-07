@@ -7,7 +7,7 @@ import praw
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-
+from functions import dataExploration, calc_indicators
 
 #SEGMENT: Basic Information
 index = "TSLA"
@@ -29,6 +29,9 @@ df["Exchange_Volume"] = exchange_df["Volume"]
 
 df= df.reset_index()
 df["Date"] = df["Date"].dt.date
+
+#SEGMENT: Adding Technical Indicators
+df = calc_indicators(df, "Close")
 
 print(df)
 print(df.info())
