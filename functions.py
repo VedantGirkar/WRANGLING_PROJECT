@@ -136,7 +136,7 @@ def get_reddit_data(years):
 def get_guardian_data(years):
     # Define API parameters
     api_key = "6463ff44-686e-4a55-a25d-2d7df802a577"
-    search_query = 'tesla OR elon musk '
+    search_query = 'tesla'
     sort = "newest"
     page_size = 50
     end = datetime.today()
@@ -144,7 +144,7 @@ def get_guardian_data(years):
     end = end.strftime("%Y%m%d")
     start = start.strftime("%Y%m%d")
     fields = "body"
-    tag = "technology/tesla"
+    tag = "technology"
 
     # Initialize an empty list to store all articles
     all_articles = []
@@ -157,7 +157,7 @@ def get_guardian_data(years):
                f"order-by={sort}&"
                f"api-key={api_key}&"
                f"query-fields={fields}&"
-               f"tag={tag}")
+               )
 
         response = requests.get(url)
         if response.status_code == 200:

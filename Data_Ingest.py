@@ -12,7 +12,7 @@ from functions import dataExploration, calc_indicators, get_reddit_data, get_gua
 #SEGMENT: Basic Information
 index = "TSLA"
 exchange = "^IXIC"
-years = 5
+years = 1
 end = datetime.today()
 start = end - timedelta(days=365 * years)
 
@@ -52,5 +52,10 @@ guardian_sentiment = df_guardian.groupby('Date').agg({
     'guardian_sentiment': 'mean',
 })
 
-print(df_reddit.info())
+# SEGMENT: Adding NYT Data
+df_nyt = pd.read_csv('nyt.csv')
+df_nyt["Date"] = pd.to_datetime(df_nyt["pub_date"]).dt.date
+df_nyt['text'] = df_nyt['text'].fillna("")
+
+print(df_nyt.info())
 print(df.info())
