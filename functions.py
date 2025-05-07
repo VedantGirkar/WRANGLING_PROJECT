@@ -63,5 +63,32 @@ def calc_indicators(df, column):
     df['Bollinger_Upper_Band'] = df['Bollinger_Middle_Band'] + 2 * df[column].rolling(window=20).std()  # Upper volatility band
     df['Bollinger_Lower_Band'] = df['Bollinger_Middle_Band'] - 2 * df[column].rolling(window=20).std()  # Lower volatility band
 
+    # Average True Range (ATR)
+    tr = pd.concat(
+        [df['High'] - df['Low'], abs(df['High'] - df['Close'].shift()), abs(df['Low'] - df['Close'].shift())],
+        axis=1).max(axis=1)
+    df['ATR'] = tr.rolling(window=14).mean()  # Measures market volatility
+
+    # On-Balance Volume (OBV)
+    df['OBV'] = (np.sign(df[column].diff()) * df['Volume']).fillna(0).cumsum()  # Tracks buying/selling pressure
+
+    # VWAP (Volume Weighted Average Price)
+    df['TP'] = (df["Open"] + df['High'] + df['Low'] + df['Close']) / 4
+    df["TP"] = df["TP"].shift(1)  # Typical price
+    df['VWAP'] = (df['TP'] * df['Volume']).cumsum() / df['Volume'].cumsum()  # Weighted average price
+
+    # TWAP (Time Weighted Average Price)
+    df['TWAP'] = df[column].rolling(window=20).mean().shift(1)  # Simple time-weighted average
+
+    # Chaikin Money Flow (CMF)
+    mf = ((df['Close'] - df['Low']) - (df['High'] - df['Close'])) / (df['High'] - df['Low']) * df['Volume']
+    df['CMF'] = mf.rolling(window=20).sum() / df['Volume'].rolling(window=20).sum()  # Money flow into/out of asset
+
+    # Advance-Decline Line (Custom for Tesla vs Nasdaq)
+    df['Advance_Decline'] = np.where(df[column] > df[column].shift(), 1,
+                                     -1).cumsum()  # Tracks cumulative advances/declines
+
+    # Cumulative Volume Index (CVI)
+    df['CVI'] = df['Volume'].cumsum()  # Tracks cumulative trading volume
 
     return df
