@@ -56,6 +56,10 @@ guardian_sentiment = df_guardian.groupby('Date').agg({
 df_nyt = pd.read_csv('nyt.csv')
 df_nyt["Date"] = pd.to_datetime(df_nyt["pub_date"]).dt.date
 df_nyt['text'] = df_nyt['text'].fillna("")
+df_nyt['nyt_sentiment'] = df_nyt['text'].apply(lambda x: analyzer.polarity_scores(x)['compound'])
+nyt_sentiment = df_nyt.groupby('Date').agg({
+    'nyt_sentiment': 'mean'
+}).reset_index()
 
-print(df_nyt.info())
+print(nyt_sentiment.info())
 print(df.info())
