@@ -6,8 +6,10 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 
-
 df = pd.read_csv('final_data.csv')
+
+# SANITY CHECK: Ensure the DataFrame is not empty
+assert not df.empty, "Error: The loaded DataFrame is empty."
 
 df = df.fillna(0)
 df[['Open', 'High', 'Low', 'Close', 'Volume']] = df[['Open', 'High', 'Low', 'Close', 'Volume']].shift(1)
@@ -15,11 +17,19 @@ df[['Open', 'High', 'Low', 'Close', 'Volume']] = df[['Open', 'High', 'Low', 'Clo
 df_base = df.filter(items=['Date', 'High', 'Low', 'Close', 'Volume', "Open"])
 df_technical = df.drop(columns=['reddit_sentiment', 'guardian_sentiment', 'reddit_score', 'nyt_sentiment'])
 
+# SANITY CHECK: Ensure subsets contain the expected columns
+expected_base_columns = {'Date', 'High', 'Low', 'Close', 'Volume', 'Open'}
+missing_base_columns = expected_base_columns - set(df_base.columns)
+assert not missing_base_columns, f"Error: Missing expected columns in df_base: {missing_base_columns}"
+
 
 def random_forest_regression(df, dataset_name):
     # Step 1: Data Preprocessing
     df['Date'] = pd.to_datetime(df['Date'])
     df.set_index('Date', inplace=True)
+    
+    # SANITY CHECK: Ensure 'Date' column is successfully converted to datetime
+    assert pd.api.types.is_datetime64_any_dtype(df.index), "Error: 'Date' column is not properly converted to datetime."
 
     # Create target variable (next day's High)
     df['Target'] = df['High'].shift(-1)  # Predict next day's High
@@ -63,12 +73,20 @@ def random_forest_regression(df, dataset_name):
     mean_predictions = predictions_per_tree.mean(axis=0)
     lower_bound = np.percentile(predictions_per_tree, 5, axis=0)  # 5th percentile for 90% CI
     upper_bound = np.percentile(predictions_per_tree, 95, axis=0)  # 95th percentile for 90% CI
+    
+    # SANITY CHECK: Ensure predictions have the same length as test data
+    assert len(mean_predictions) == len(y_test), "Error: Length mismatch between predicted and actual values."
+    assert len(lower_bound) == len(y_test), "Error: Length mismatch between lower bound predictions and actual values."
+    assert len(upper_bound) == len(y_test), "Error: Length mismatch between upper bound predictions and actual values."
 
     # Step 5: Feature Importance
     feature_importance = pd.DataFrame({
         'Feature': X_train.columns,
         'Importance': model_rf.feature_importances_
     }).sort_values(by='Importance', ascending=False)
+    
+    # SANITY CHECK: Ensure feature importance DataFrame is not empty
+    assert not feature_importance.empty, "Error: Feature importance DataFrame is empty."
 
     print("Feature Importance:")
     print(feature_importance)

@@ -6,6 +6,8 @@ import praw
 import requests
 
 def dataExploration(df, y):
+    # SANITY CHECK: Ensure the column exists in the DataFrame
+    assert y in df.columns, f"Error: Column '{y}' not found in the DataFrame."
     print("--------------------------------------------------------------------------------")
     x = df[y].unique()
     print("DATA EXPLORATION")
@@ -29,6 +31,14 @@ def calc_indicators(df, column):
     Returns:
         pd.DataFrame: Updated DataFrame with calculated indicators as new columns.
     """
+    # SANITY CHECK: Ensure the DataFrame has necessary columns
+    required_columns = {'Close', 'High', 'Low', 'Volume'}
+    missing_columns = required_columns - set(df.columns)
+    assert not missing_columns, f"Error: Missing required columns: {missing_columns}"
+
+    # SANITY CHECK: Ensure the specified column exists
+    assert column in df.columns, f"Error: Column '{column}' not found in the DataFrame."
+
 
     # Ensure the DataFrame has necessary columns
     required_columns = {'Close', 'High', 'Low', 'Volume'}
@@ -130,8 +140,17 @@ def get_reddit_data(years):
                         "selftext": submission.selftext,
                         "reddit_score": submission.score
                     })
+    # SANITY CHECK: Ensure the posts list is not empty
+    assert len(posts) > 0, "Error: No Reddit posts were fetched."
 
-    return pd.DataFrame(posts)
+    df = pd.DataFrame(posts)
+
+    # SANITY CHECK: Verify the DataFrame has the expected columns
+    expected_columns = {"Date", "subreddit", "keyword", "title", "selftext", "reddit_score"}
+    missing_columns = expected_columns - set(df.columns)
+    assert not missing_columns, f"Error: Missing expected columns in Reddit DataFrame: {missing_columns}"
+
+    return df
 
 def get_guardian_data(years):
     # Define API parameters
@@ -174,5 +193,14 @@ def get_guardian_data(years):
             print(f"Error on page {page}: {data['message']}")
             break  # Stop the loop if there's an error
 
-    # Convert the list of articles into a DataFrame
-    return pd.DataFrame(all_articles)
+    # SANITY CHECK: Ensure the articles list is not empty
+    assert len(all_articles) > 0, "Error: No Guardian articles were fetched."
+
+    df = pd.DataFrame(all_articles)
+
+    # SANITY CHECK: Verify the DataFrame has the expected columns
+    expected_columns = {"Date", "GuardianTitle"}
+    missing_columns = expected_columns - set(df.columns)
+    assert not missing_columns, f"Error: Missing expected columns in Guardian DataFrame: {missing_columns}"
+
+    return df

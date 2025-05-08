@@ -30,6 +30,10 @@ for page in range(1, 301):  # Adjust the range to include more pages (e.g., 1 to
     if response.status_code == 200:
         data = response.json()
         articles = data['response']['docs']
+        
+        # SANITY CHECK: Ensure 'response' and 'docs' keys exist in the JSON response
+        assert 'response' in data, f"Error: 'response' key missing in API response for page {page}."
+        assert 'docs' in data['response'], f"Error: 'docs' key missing in API response for page {page}."
 
         # Append each article to the list
         for article in articles:
@@ -42,12 +46,16 @@ for page in range(1, 301):  # Adjust the range to include more pages (e.g., 1 to
         break  # Stop the loop if there's an error
     time.sleep(0)  # Add a delay to avoid hitting the API rate limit
 
+# SANITY CHECK: Ensure at least one article was fetched
+assert len(all_articles) > 0, "Error: No articles were fetched from the API."
+
 # Convert the list of articles into a DataFrame
 df = pd.DataFrame(all_articles)
 
+# SANITY CHECK: Verify the DataFrame has the expected columns
+expected_columns = {'Date', 'Title'}
+missing_columns = expected_columns - set(df.columns)
+assert not missing_columns, f"Error: Missing expected columns in DataFrame: {missing_columns}"
+
 # Save the DataFrame to a CSV file
 df.to_csv('nyt_articles.csv', index=False)
-
-# Print the first few rows of the DataFrame
-print(df[['Date', 'Title']])
-print(df.info())

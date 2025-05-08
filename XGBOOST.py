@@ -8,21 +8,43 @@ import plotly.graph_objects as go
 
 df = pd.read_csv('final_data.csv')
 
-df = df.fillna(0)
+# SANITY CHECK: Ensure the DataFrame is not empty
+assert not df.empty, "Error: The loaded DataFrame is empty."
+
 df[['Open', 'High', 'Low', 'Close', 'Volume']] = df[['Open', 'High', 'Low', 'Close', 'Volume']].shift(1)
+df = df.fillna(0)
+# SANITY CHECK: Verify no missing values after shifting
+assert df[['Open', 'High', 'Low', 'Close', 'Volume']].isnull().sum().sum() == 0, "Error: Missing values found after shifting."
+
 
 df_base = df.filter(items=['Date', 'High', 'Low', 'Close', 'Volume', "Open"])
+# SANITY CHECK: Ensure subsets contain the expected columns
+expected_base_columns = {'Date', 'High', 'Low', 'Close', 'Volume', 'Open'}
+missing_base_columns = expected_base_columns - set(df_base.columns)
+assert not missing_base_columns, f"Error: Missing expected columns in df_base: {missing_base_columns}"
+
 df_technical = df.drop(columns=['reddit_sentiment', 'guardian_sentiment', 'reddit_score', 'nyt_sentiment'])
+# SANITY CHECK: Ensure subsets contain the expected columns
+expected_technical_columns = set(df.columns) - {'reddit_sentiment', 'guardian_sentiment', 'reddit_score', 'nyt_sentiment'}
+missing_technical_columns = expected_technical_columns - set(df_technical.columns)
+assert not missing_technical_columns, f"Error: Missing expected columns in df_technical: {missing_technical_columns}"
 
 def xgboost_regressor(df, dataset_name):
     # Preprocess data
     df['Date'] = pd.to_datetime(df['Date'])
     df.set_index('Date', inplace=True)
+    
+    # SANITY CHECK: Ensure 'Date' column is successfully converted to datetime
+    assert pd.api.types.is_datetime64_any_dtype(df.index), "Error: 'Date' column is not properly converted to datetime."
 
     # Create target variable (next day's High)
     df['Target'] = df['High'].shift(-1)
     df.dropna(subset=['Target'], inplace=True)
 
+    # SANITY CHECK: Ensure 'Target' column exists and has no missing values
+    assert 'Target' in df.columns, "Error: 'Target' column not found in the DataFrame."
+    assert df['Target'].isnull().sum() == 0, "Error: Missing values found in 'Target' column."
+    
     # Features and target
     features = df.drop(columns=['High', 'Target'])
     target = df['Target']
@@ -68,6 +90,11 @@ def xgboost_regressor(df, dataset_name):
     y_pred_mean = model_mean.predict(X_test)
     y_pred_lower = model_lower.predict(X_test)
     y_pred_upper = model_upper.predict(X_test)
+    
+    # SANITY CHECK: Ensure predictions have the same length as test data
+    assert len(y_pred_mean) == len(y_test), "Error: Length mismatch between predicted and actual values."
+    assert len(y_pred_lower) == len(y_test), "Error: Length mismatch between lower bound predictions and actual values."
+    assert len(y_pred_upper) == len(y_test), "Error: Length mismatch between upper bound predictions and actual values."
 
     # Calculate RMSE
     rmse = np.sqrt(mean_squared_error(y_test[:-1], y_pred_mean[:-1]))
@@ -77,6 +104,9 @@ def xgboost_regressor(df, dataset_name):
         'Feature': features.columns,
         'Importance': model_mean.feature_importances_
     }).sort_values(by='Importance', ascending=False)
+    
+    # SANITY CHECK: Ensure feature importance DataFrame is not empty
+    assert not importance.empty, "Error: Feature importance DataFrame is empty."
 
     # Plot results using Plotly
     fig1 = go.Figure()
