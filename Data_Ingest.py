@@ -77,7 +77,6 @@ data = data.fillna(0)
 
 
 print(data)
-print(data.info())
 
 # Save the DataFrame to a CSV file
 data.to_csv("final_data.csv")
