@@ -71,6 +71,8 @@ data["reddit_score"] = data["reddit_score"].fillna(0)
 data["guardian_sentiment"] = data["guardian_sentiment"].fillna(0)
 data["nyt_sentiment"] = data["nyt_sentiment"].fillna(0)
 
+data = data.drop(["Dividends", "Stock Splits"], axis=1)
+
 data = data.fillna(0)
 
 
