@@ -16,7 +16,7 @@ df_base = df.filter(items=['Date', 'High', 'Low', 'Close', 'Volume', "Open"])
 df_technical = df.drop(columns=['reddit_sentiment', 'guardian_sentiment', 'reddit_score', 'nyt_sentiment'])
 
 
-def random_forest_regression(df):
+def random_forest_regression(df, dataset_name):
     # Step 1: Data Preprocessing
     df['Date'] = pd.to_datetime(df['Date'])
     df.set_index('Date', inplace=True)
@@ -116,7 +116,7 @@ def random_forest_regression(df):
     ))
 
     fig1.update_layout(
-        title='Apple Stock High Price Prediction with Random Forest',
+        title=f'Apple Stock High Price Prediction with Random Forest<br>{dataset_name}',
         xaxis_title='Date',
         yaxis_title='Price ($)',
         legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.01),
@@ -137,7 +137,7 @@ def random_forest_regression(df):
     ))
 
     fig2.update_layout(
-        title='Top 10 Most Important Features',
+        title=f'Top 10 Most Important Features<br>{dataset_name}',
         xaxis_title='Feature Importance Score',
         yaxis_title='Features',
         yaxis=dict(autorange="reversed"),
@@ -162,7 +162,21 @@ def random_forest_regression(df):
     }
 
 
-# Example Usage
-# Assuming `df` is your preloaded DataFrame
-results = random_forest_regression(df)
-print(results)
+
+#SEGMENT: Analyzing Data with Only the Base Features : Open, High, Low, Close, Volume
+print("Analyzing Data with Only the Base Features : Open, High, Low, Close, Volume\n")
+base = random_forest_regression(df_base, "Base Data")
+print(base)
+print("\n", "#"*100, "\n")
+
+#SEGMENT: Analyzing Data with Base Features + Technical Indicators : RSI, MACD, etc
+print("Analyzing Data with Base Features + Technical Indicators : RSI, MACD, etc\n")
+technical = random_forest_regression(df_technical, "Base Data + Technical Indicators")
+print(technical)
+print("\n", "#"*100, "\n")
+
+#SEGMENT: Analyzing Data with Base Features + Technical Indicators + Sentiment Analysis: Reddit, Guardian, NYT
+print("Analyzing Data with Base Features + Technical Indicators + Sentiment Analysis: Reddit, Guardian, NYT\n")
+sentiment = random_forest_regression(df, "Base Data + Technical Indicators + Sentiment Analysis")
+print(sentiment)
+print("\n", "#"*100, "\n")
