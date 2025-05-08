@@ -134,7 +134,7 @@ def random_forest_regression(df, dataset_name):
     ))
 
     fig1.update_layout(
-        title=f'Apple Stock High Price Prediction with Random Forest<br>{dataset_name}',
+        title=f'Tesla Stock High Price Prediction with Random Forest<br>{dataset_name}',
         xaxis_title='Date',
         yaxis_title='Price ($)',
         legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.01),
