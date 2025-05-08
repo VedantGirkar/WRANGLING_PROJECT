@@ -4,6 +4,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 
 
 df = pd.read_csv('final_data.csv')
@@ -60,7 +61,89 @@ def random_forest_regression(df):
 
     # Calculate mean and percentiles across trees
     mean_predictions = predictions_per_tree.mean(axis=0)
+    lower_bound = np.percentile(predictions_per_tree, 5, axis=0)  # 5th percentile for 90% CI
+    upper_bound = np.percentile(predictions_per_tree, 95, axis=0)  # 95th percentile for 90% CI
 
+    # Step 5: Feature Importance
+    feature_importance = pd.DataFrame({
+        'Feature': X_train.columns,
+        'Importance': model_rf.feature_importances_
+    }).sort_values(by='Importance', ascending=False)
+
+    print("Feature Importance:")
+    print(feature_importance)
+
+    # Step 6: Plot Results using Plotly
+    fig1 = go.Figure()
+
+    # Actual Price
+    fig1.add_trace(go.Scatter(
+        x=y_test.index[:-1],
+        y=y_test[:-1],
+        mode='lines+markers',
+        name='Actual Price',
+        marker=dict(color='blue')
+    ))
+
+    # Predicted Price
+    fig1.add_trace(go.Scatter(
+        x=y_test.index[:-1],
+        y=mean_predictions[:-1],
+        mode='lines+markers',
+        name='Predicted Price',
+        line=dict(dash='dash'),
+        marker=dict(color='orange')
+    ))
+
+    # Confidence Interval
+    fig1.add_trace(go.Scatter(
+        x=y_test.index[:-1].tolist() + y_test.index[:-1].tolist()[::-1],
+        y=np.concatenate([lower_bound[:-1], upper_bound[:-1][::-1]]),
+        fill='toself',
+        fillcolor='rgba(128, 128, 128, 0.2)',
+        line=dict(color='rgba(255,255,255,0)'),
+        name='90% CI'
+    ))
+
+    # Next Day Prediction
+    last_date = y_test.index[-1] + pd.Timedelta(days=1)
+    fig1.add_trace(go.Scatter(
+        x=[last_date],
+        y=[mean_predictions[-1]],
+        mode='markers',
+        name=f'Next Day Prediction ({mean_predictions[-1]:.2f})',
+        marker=dict(color='red', size=10)
+    ))
+
+    fig1.update_layout(
+        title='Apple Stock High Price Prediction with Random Forest',
+        xaxis_title='Date',
+        yaxis_title='Price ($)',
+        legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.01),
+        template='plotly_white'
+    )
+    fig1.show()
+
+    # Feature Importance Plot
+    top_10_features = feature_importance.head(10)
+    fig2 = go.Figure()
+
+    fig2.add_trace(go.Bar(
+        y=top_10_features['Feature'],
+        x=top_10_features['Importance'],
+        orientation='h',
+        marker=dict(color='skyblue', line=dict(color='black', width=1)),
+        name='Feature Importance'
+    ))
+
+    fig2.update_layout(
+        title='Top 10 Most Important Features',
+        xaxis_title='Feature Importance Score',
+        yaxis_title='Features',
+        yaxis=dict(autorange="reversed"),
+        template='plotly_white'
+    )
+    fig2.show()
 
     # Step 7: Calculate RMSE
     rmse = np.sqrt(mean_squared_error(y_test[:-1], mean_predictions[:-1]))
@@ -70,9 +153,12 @@ def random_forest_regression(df):
         'rmse': rmse,
         'predictions': pd.DataFrame({
             'Actual': y_test,
-            'Predicted': mean_predictions
+            'Predicted': mean_predictions,
+            'Lower_CI': lower_bound,
+            'Upper_CI': upper_bound
         }, index=X_test.index),
-        'next_day_prediction': mean_predictions[-1]
+        'next_day_prediction': mean_predictions[-1],
+        'feature_importance': feature_importance
     }
 
 
