@@ -17,7 +17,7 @@ end = datetime.today()
 start = end - timedelta(days=365 * years)
 
 df = yf.Ticker(index).history(start=start, end=end)
-
+d
 #SEGMENT: Adding Exchange Data
 #NOTE: Dow Jones : ^DJI || NYSE : NYA || NASDAQ : ^IXIC || AMEX : ^AMEX || S&P 500 : ^SPX
 exchange_df = yf.Ticker(exchange).history(start=start, end=end)
@@ -79,4 +79,11 @@ data = data.fillna(0)
 print(data)
 print(data.info())
 
+# Save the DataFrame to a CSV file
 data.to_csv("final_data.csv")
+
+# Save the DataFrame to a Parquet file
+df.to_parquet('final_data.parquet', engine='pyarrow', index=False)
+
+# Save the DataFrame to a Excel file
+data.to_excel('final_data.xlsx', index=False)
