@@ -17,7 +17,7 @@ end = datetime.today()
 start = end - timedelta(days=365 * years)
 
 df = yf.Ticker(index).history(start=start, end=end)
-d
+
 #SEGMENT: Adding Exchange Data
 #NOTE: Dow Jones : ^DJI || NYSE : NYA || NASDAQ : ^IXIC || AMEX : ^AMEX || S&P 500 : ^SPX
 exchange_df = yf.Ticker(exchange).history(start=start, end=end)
