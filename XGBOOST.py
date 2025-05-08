@@ -14,7 +14,7 @@ df[['Open', 'High', 'Low', 'Close', 'Volume']] = df[['Open', 'High', 'Low', 'Clo
 df_base = df.filter(items=['Date', 'High', 'Low', 'Close', 'Volume', "Open"])
 df_technical = df.drop(columns=['reddit_sentiment', 'guardian_sentiment', 'reddit_score', 'nyt_sentiment'])
 
-def xgboost_regressor(df):
+def xgboost_regressor(df, dataset_name):
     # Preprocess data
     df['Date'] = pd.to_datetime(df['Date'])
     df.set_index('Date', inplace=True)
@@ -121,7 +121,7 @@ def xgboost_regressor(df):
     ))
 
     fig1.update_layout(
-        title='Apple Stock High Price Prediction with XGBoost',
+        title=f'Apple Stock High Price Prediction with XGBoost<br>{dataset_name}',
         xaxis_title='Date',
         yaxis_title='Price ($)',
         legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.01),
@@ -142,7 +142,7 @@ def xgboost_regressor(df):
     ))
 
     fig2.update_layout(
-        title='Top 10 Most Important Features',
+        title=f'Top 10 Most Important Features<br>{dataset_name}',
         xaxis_title='Feature Importance Score',
         yaxis_title='Features',
         yaxis=dict(autorange="reversed"),
@@ -162,6 +162,20 @@ def xgboost_regressor(df):
         'next_day_prediction': y_pred_mean[-1]
     }
 
-# Example usage:
-results = xgboost_regressor(df)
-print(results)
+#SEGMENT: Analyzing Data with Only the Base Features : Open, High, Low, Close, Volume
+print("Analyzing Data with Only the Base Features : Open, High, Low, Close, Volume\n")
+base = xgboost_regressor(df_base, "Base Data")
+print(base)
+print("\n", "#"*100, "\n")
+
+#SEGMENT: Analyzing Data with Base Features + Technical Indicators : RSI, MACD, etc
+print("Analyzing Data with Base Features + Technical Indicators : RSI, MACD, etc\n")
+technical = xgboost_regressor(df_technical, "Base Data + Technical Indicators")
+print(technical)
+print("\n", "#"*100, "\n")
+
+#SEGMENT: Analyzing Data with Base Features + Technical Indicators + Sentiment Analysis: Reddit, Guardian, NYT
+print("Analyzing Data with Base Features + Technical Indicators + Sentiment Analysis: Reddit, Guardian, NYT\n")
+sentiment = xgboost_regressor(df, "Base Data + Technical Indicators + Sentiment Analysis")
+print(sentiment)
+print("\n", "#"*100, "\n")
