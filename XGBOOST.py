@@ -4,6 +4,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import xgboost as xgb
+import plotly.graph_objects as go
 
 df = pd.read_csv('final_data.csv')
 
@@ -71,9 +72,87 @@ def xgboost_regressor(df):
     # Calculate RMSE
     rmse = np.sqrt(mean_squared_error(y_test[:-1], y_pred_mean[:-1]))
 
+    # Feature importance
+    importance = pd.DataFrame({
+        'Feature': features.columns,
+        'Importance': model_mean.feature_importances_
+    }).sort_values(by='Importance', ascending=False)
+
+    # Plot results using Plotly
+    fig1 = go.Figure()
+
+    # Actual Price
+    fig1.add_trace(go.Scatter(
+        x=y_test.index[:-1],
+        y=y_test[:-1],
+        mode='lines+markers',
+        name='Actual Price',
+        marker=dict(color='blue')
+    ))
+
+    # Predicted Price
+    fig1.add_trace(go.Scatter(
+        x=y_test.index[:-1],
+        y=y_pred_mean[:-1],
+        mode='lines+markers',
+        name='Predicted Price',
+        line=dict(dash='dash'),
+        marker=dict(color='orange')
+    ))
+
+    # Confidence Interval
+    fig1.add_trace(go.Scatter(
+        x=y_test.index[:-1].tolist() + y_test.index[:-1].tolist()[::-1],
+        y=np.concatenate([y_pred_lower[:-1], y_pred_upper[:-1][::-1]]),
+        fill='toself',
+        fillcolor='rgba(128, 128, 128, 0.2)',
+        line=dict(color='rgba(255,255,255,0)'),
+        name='90% CI'
+    ))
+
+    # Next Day Prediction
+    last_date = y_test.index[-1] + pd.Timedelta(days=1)
+    fig1.add_trace(go.Scatter(
+        x=[last_date],
+        y=[y_pred_mean[-1]],
+        mode='markers',
+        name=f'Next Day Prediction ({y_pred_mean[-1]:.2f})',
+        marker=dict(color='red', size=10)
+    ))
+
+    fig1.update_layout(
+        title='Apple Stock High Price Prediction with XGBoost',
+        xaxis_title='Date',
+        yaxis_title='Price ($)',
+        legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.01),
+        template='plotly_white'
+    )
+    fig1.show()
+
+    # Feature Importance Plot
+    top_10_features = importance.head(10)
+    fig2 = go.Figure()
+
+    fig2.add_trace(go.Bar(
+        y=top_10_features['Feature'],
+        x=top_10_features['Importance'],
+        orientation='h',
+        marker=dict(color='skyblue', line=dict(color='black', width=1)),
+        name='Feature Importance'
+    ))
+
+    fig2.update_layout(
+        title='Top 10 Most Important Features',
+        xaxis_title='Feature Importance Score',
+        yaxis_title='Features',
+        yaxis=dict(autorange="reversed"),
+        template='plotly_white'
+    )
+    fig2.show()
 
     return {
         'rmse': rmse,
+        'feature_importance': importance,
         'predictions': pd.DataFrame({
             'Actual': y_test,
             'Predicted': y_pred_mean,
