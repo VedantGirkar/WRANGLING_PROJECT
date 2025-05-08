@@ -21,6 +21,16 @@ The project provides interactive visualizations using **Plotly** to enhance the 
 
 ---
 
+## Order of Operations
+1. NYC.py: Fetches data from the New York Times API and saves it as a CSV file.
+2. Data_Ingest.py: Ingests the data for the Stocks, Reddit Sentiment, and Guardian Sentiment, & combines them into a 
+   single DataFrame with the NYC data.
+3. Data Analysis : There are two models, Random Forest and XGBoost, which are trained on the combined DataFrame.
+3.1 Random Forest: Trains a Random Forest Regressor to predict the next day's Close price.
+3.2 XGBoost: Trains an XGBoost Regressor with quantile regression to estimate confidence intervals.
+
+---
+
 ## Objective
 The primary goal of this project is to:
 - Predict the next day's high price of Tesla stock.
@@ -107,7 +117,7 @@ The project consists of five main components:
 3. **Market Mood Swings**:
    - External sentiment often correlates with significant price movements, validating its inclusion in the model.
 
-# Interactive Visualizations
+## Interactive Visualizations
 
 ## 1. Actual vs. Predicted Prices
 An interactive plot displays:
@@ -142,7 +152,8 @@ A horizontal bar chart ranks the top 10 features by importance, highlighting the
 ---
 
 # Conclusion
-This project successfully predicts Apple stock's next day high price and identifies key factors influencing market mood swings. By combining technical indicators and sentiment analysis, the models provide actionable insights for investors. The use of interactive visualizations enhances the interpretability of results, making this project a valuable tool for stock market analysis.
+This project successfully predicts Tesla stock's next day high price and identifies key factors influencing market mood 
+swings. By combining technical indicators and sentiment analysis, the models provide actionable insights for investors. The use of interactive visualizations enhances the interpretability of results, making this project a valuable tool for stock market analysis.
 
 ---
 
